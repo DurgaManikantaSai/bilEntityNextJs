@@ -1,0 +1,104 @@
+
+
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+datasource db {
+    provider = "mongodb"
+    url      = env("DATABASE_URL")
+}
+
+generator client {
+    provider = "prisma-client-js"
+}
+
+
+// Relationships
+
+// User and GoodsSupplier: One-to-many
+// A user can have multiple goods suppliers, but each goods supplier is associated with one user.
+
+// User and Payment: One-to-many
+// A user can make multiple payments, but each payment is made by one user.
+
+// User and Bill: One-to-many
+// A user can have multiple bills, but each bill is associated with one user.
+
+// GoodsSupplier and Payment: One-to-many
+// A goods supplier can have multiple payments, but each payment is associated with one goods supplier.
+
+// GoodsSupplier and Bill: One-to-many
+// A goods supplier can have multiple bills, but each bill is associated with one goods supplier.
+
+
+
+model User {
+    id             String          @id @default(auto()) @map("_id") @db.ObjectId
+    email          String          @unique
+    password       String
+    firmName       String
+    owner          String
+    address        String
+    gstNo          String
+    phone          String
+    amount         Float
+    goodsSuppliers GoodsSupplier[]
+    payments       Payment[]
+    bills          Bill[]
+}
+
+model GoodsSupplier {
+    id       String    @id @default(auto()) @map("_id") @db.ObjectId
+    name     String
+    address  String
+    contact  String
+    gstNo    String
+    aadhar   String
+    owner    String
+    userId   String    @db.ObjectId
+    user     User      @relation(fields: [userId], references: [id])
+    payments Payment[]
+    bills    Bill[]
+}
+
+model Payment {
+    id              String        @id @default(auto()) @map("_id") @db.ObjectId
+    date            DateTime
+    amount          Float
+    voucherNo       String?
+    receiver        String
+    note            String?
+    type            PaymentType
+    goodsSupplierId String        @db.ObjectId
+    goodsSupplier   GoodsSupplier @relation(fields: [goodsSupplierId], references: [id])
+    userId          String        @db.ObjectId
+    user            User          @relation(fields: [userId], references: [id])
+}
+
+enum PaymentType {
+    CASH
+    DIGITAL
+}
+
+model Bill {
+    id              String        @id @default(auto()) @map("_id") @db.ObjectId
+    name            String
+    date            DateTime
+    amount          Float?
+    type            BillType
+    goodsSupplierId String        @db.ObjectId
+    goodsSupplier   GoodsSupplier @relation(fields: [goodsSupplierId], references: [id])
+    userId          String        @db.ObjectId
+    user            User          @relation(fields: [userId], references: [id])
+}
+
+enum BillType {
+    GST
+    NON_GST
+}
+
+
+
